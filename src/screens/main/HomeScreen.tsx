@@ -10,7 +10,7 @@ import {MainBottomTabParamList} from './MainBottomTabParams';
 
 type HomeScreenProp = CompositeNavigationProp<
   StackNavigationProp<RootStackParamList, 'Main'>,
-  BottomTabNavigationProp<MainBottomTabParamList, 'Home'>
+  BottomTabNavigationProp<MainBottomTabParamList, 'Podcasts'>
 >;
 
 export default function HomeScreen() {
@@ -19,7 +19,8 @@ export default function HomeScreen() {
   return (
     <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
       <Text>Home Screen</Text>
-      <Button title="Login" onPress={() => navigation.navigate('Auth')} />
+      <Button title="Login" onPress={() => navigation.goBack()} />
+      <Button title="Auth" onPress={() => navigation.navigate('Auth')} />
     </View>
   );
 }

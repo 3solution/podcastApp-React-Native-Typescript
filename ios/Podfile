@@ -12,6 +12,10 @@ target 'podcastApp' do
     :hermes_enabled => false
   )
 
+  pod 'RNFS', :path => '../node_modules/react-native-fs'
+
+  pod 'react-native-track-player', :path => '../node_modules/react-native-track-player'
+
   target 'podcastAppTests' do
     inherit! :complete
     # Pods for testing

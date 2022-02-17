@@ -1,4 +1,8 @@
 export type MainBottomTabParamList = {
-  Home: undefined;
-  Details: undefined;
+  Podcasts: undefined;
+  Discover: undefined;
+  New: undefined;
+  Downloads: undefined;
+  Profile: undefined;
+  Welcome: undefined;
 };

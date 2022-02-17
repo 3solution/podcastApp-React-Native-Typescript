@@ -10,7 +10,7 @@ import {MainBottomTabParamList} from './MainBottomTabParams';
 
 type HomeScreenProp = CompositeNavigationProp<
   StackNavigationProp<RootStackParamList, 'Auth'>,
-  BottomTabNavigationProp<MainBottomTabParamList, 'Details'>
+  BottomTabNavigationProp<MainBottomTabParamList, 'Discover'>
 >;
 
 export default function DetailsScreen() {
@@ -19,7 +19,7 @@ export default function DetailsScreen() {
   return (
     <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
       <Text>Detail Screen</Text>
-      <Button title="Login" onPress={() => navigation.navigate('Main')} />
+      <Button title="Login" onPress={() => navigation.goBack()} />
     </View>
   );
 }
