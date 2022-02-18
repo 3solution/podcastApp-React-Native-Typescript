@@ -179,6 +179,7 @@ export default function New() {
         // headers: headers,
       };
       //Call downloadFile
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       await RNFS.downloadFile(options).promise;
       console.log('download end');
       const downloadedTempList = {...newList};
@@ -195,6 +196,7 @@ export default function New() {
         duration: item.duration,
       };
       const downloadPrev = await AsyncStorage.getItem('downloadList');
+      console.log('downloadPrev: ', downloadPrev);
       if (downloadPrev === null || downloadPrev === '') {
         // setDownloadList(downloadTemp);
         await AsyncStorage.setItem(

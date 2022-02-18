@@ -42,8 +42,13 @@ export default function Discover() {
   const [isPendingTrend, setIsPendingTrend] = useState(false);
   const [isPendingPopular, setIsPendingPopular] = useState(false);
   const [isPendingSearch, setIsPendingSearch] = useState(false);
-  const {setPodcastDetail, setDownload} = useContext(PodcastContext);
-  const {setFollowing, following} = useContext(PodcastContext);
+  const {
+    setPodcastDetail,
+    setDownload,
+    setFollowing,
+    following,
+    setPodcastValue,
+  } = useContext(PodcastContext);
   const {accessToken, setAccessToken} = useContext(UserContext);
 
   function followIcon(state: any) {
@@ -127,8 +132,10 @@ export default function Discover() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchText]);
 
-  const goPodcastDetail = async (url: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const goPodcastDetail = async (url: string, item: any) => {
     setPodcastDetail(url);
+    setPodcastValue(item);
     navigation.navigate('PodcastDetail');
   };
 
@@ -207,7 +214,7 @@ export default function Discover() {
                     <TouchableOpacity
                       style={tw`flex-1`}
                       onPress={() => {
-                        goPodcastDetail(item.feedUrl);
+                        goPodcastDetail(item.feedUrl, item);
                       }}>
                       <DiscoverItem
                         image={item.image.url}
@@ -251,7 +258,7 @@ export default function Discover() {
                     <TouchableOpacity
                       style={tw`flex-1`}
                       onPress={() => {
-                        goPodcastDetail(item.feedUrl);
+                        goPodcastDetail(item.feedUrl, item);
                       }}>
                       <DiscoverItem
                         image={item.image.url}
@@ -285,7 +292,7 @@ export default function Discover() {
                 <TouchableOpacity
                   style={tw`flex-1`}
                   onPress={() => {
-                    goPodcastDetail(item.feedUrl);
+                    goPodcastDetail(item.feedUrl, item);
                   }}>
                   <DiscoverItem
                     image={item.image.url}

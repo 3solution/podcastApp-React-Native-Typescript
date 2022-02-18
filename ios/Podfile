@@ -16,6 +16,8 @@ target 'podcastApp' do
 
   pod 'react-native-track-player', :path => '../node_modules/react-native-track-player'
 
+  pod 'RNSVG', :path => '../node_modules/react-native-svg'
+
   target 'podcastAppTests' do
     inherit! :complete
     # Pods for testing

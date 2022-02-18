@@ -31,7 +31,8 @@ export default function Podcast() {
   const [podcastList, setPodcastList] = useState<Array<any>>([]);
   const [isPending, setIsPending] = useState(false);
   const {accessToken, setAccessToken} = useContext(UserContext);
-  const {setPodcastDetail, following} = useContext(PodcastContext);
+  const {setPodcastDetail, following, setPodcastValue} =
+    useContext(PodcastContext);
 
   const getListFollow = async () => {
     try {
@@ -57,8 +58,10 @@ export default function Podcast() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, following]);
 
-  const goEpisode = async (url: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const goEpisode = async (url: string, item: any) => {
     setPodcastDetail(url);
+    setPodcastValue(item);
     navigation.navigate('PodcastDetail');
   };
 
@@ -83,7 +86,7 @@ export default function Podcast() {
               <View key={index}>
                 <TouchableOpacity
                   onPress={() => {
-                    goEpisode(item.feedUrl);
+                    goEpisode(item.feedUrl, item);
                   }}>
                   <View style={tw`h-20 w-20 border-white`}>
                     <Image

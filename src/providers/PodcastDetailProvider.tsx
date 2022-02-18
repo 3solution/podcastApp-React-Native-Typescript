@@ -21,6 +21,8 @@ type PodcastContextType = {
   setFollowing: React.Dispatch<React.SetStateAction<string>>;
   download: Array<downloadTemp>;
   setDownload: React.Dispatch<React.SetStateAction<Array<downloadTemp>>>;
+  podcastValue: any;
+  setPodcastValue: React.Dispatch<React.SetStateAction<any>>;
 };
 
 export const PodcastContext = createContext<PodcastContextType>({
@@ -30,11 +32,14 @@ export const PodcastContext = createContext<PodcastContextType>({
   setFollowing: () => {},
   download: [],
   setDownload: () => {},
+  podcastValue: {},
+  setPodcastValue: () => {},
 });
 
 const PodcastProvider: React.FC<Props> = ({children}) => {
   const [podcastDetail, setPodcastDetail] = useState('');
   const [following, setFollowing] = useState('');
+  const [podcastValue, setPodcastValue] = useState<any>();
   const [download, setDownload] = useState<Array<downloadTemp>>([]);
   return (
     <PodcastContext.Provider
@@ -45,6 +50,8 @@ const PodcastProvider: React.FC<Props> = ({children}) => {
         setFollowing,
         download,
         setDownload,
+        podcastValue,
+        setPodcastValue,
       }}>
       {children}
     </PodcastContext.Provider>

@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.16.1",
+    "@react-native-community/cli": "^7.0.1",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-native-community/slider": "^4.2.0",
     "@react-navigation/bottom-tabs": "^6.2.0",
@@ -31,7 +32,7 @@
     "axios": "^0.26.0",
     "native-base": "^3.3.6",
     "react": "17.0.2",
-    "react-native": "0.64.3",
+    "react-native": "^0.67.2",
     "react-native-dotenv": "^3.3.1",
     "react-native-fs": "^2.18.0",
     "react-native-gesture-handler": "^2.2.0",
@@ -44,7 +45,8 @@
     "react-native-svg": "^12.1.1",
     "react-native-svg-transformer": "^1.0.0",
     "react-native-tab-view": "^3.1.1",
-    "react-native-track-player": "^2.1.2",
+    "react-native-track-player": "^2.0.1",
+    "react-native-windows": "^0.67.1",
     "twrnc": "^3.0.2"
   },
   "devDependencies": {

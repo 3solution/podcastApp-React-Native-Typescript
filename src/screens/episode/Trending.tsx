@@ -1,7 +1,6 @@
 import {useContext, useEffect, useState} from 'react';
 import {
   ScrollView,
-  Text,
   View,
   TouchableOpacity,
   ActivityIndicator,
@@ -9,7 +8,7 @@ import {
 import DiscoverItem from '../../components/DiscoverItem';
 import tw from 'twrnc';
 import axios from 'axios';
-import {ArrowLeftIcon, PlusIcon} from 'react-native-heroicons/solid';
+import {PlusIcon} from 'react-native-heroicons/solid';
 import {API_HOSTING} from '@env';
 import {PodcastContext} from '../../providers/PodcastDetailProvider';
 import {CheckIcon} from 'react-native-heroicons/outline';
@@ -28,7 +27,7 @@ export default function Trending() {
   const [trendingList, setTrendingList] = useState<Array<any>>([]);
   const [isPendingTrend, setIsPendingTrend] = useState(false);
   const {setPodcastDetail} = useContext(PodcastContext);
-  const {setFollowing, following} = useContext(PodcastContext);
+  const {setFollowing, following, setPodcastValue} = useContext(PodcastContext);
   const {accessToken, setAccessToken} = useContext(UserContext);
 
   function followIcon(state: any) {
@@ -65,8 +64,10 @@ export default function Trending() {
   useEffect(() => {
     getListAllTrend();
   }, []);
-  const goPodcastDetail = async (url: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const goPodcastDetail = async (url: string, item: any) => {
     setPodcastDetail(url);
+    setPodcastValue(item);
     navigation.navigate('PodcastDetail');
   };
   const followPodcast = async (followed: boolean, item: any) => {
@@ -124,7 +125,7 @@ export default function Trending() {
                 <TouchableOpacity
                   style={tw`flex-1`}
                   onPress={() => {
-                    goPodcastDetail(item.feedUrl);
+                    goPodcastDetail(item.feedUrl, item);
                   }}>
                   <DiscoverItem
                     image={item.image.url}

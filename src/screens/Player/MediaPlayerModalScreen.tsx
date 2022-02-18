@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   ScrollView,
   useWindowDimensions,
+  ActivityIndicator,
+  TextInput,
+  Pressable,
 } from 'react-native';
 import TrackPlayer, {
   Event,
@@ -19,26 +22,55 @@ import {
 } from 'react-native-track-player/lib/hooks';
 import tw from '../../modules/tailwind';
 import {SceneMap, TabBar} from 'react-native-tab-view';
-import {ShareIcon} from 'react-native-heroicons/outline';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import Slider from '@react-native-community/slider';
 import Button from '../../components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {EpisodeContext} from '../../providers/EpisodeCommentProvider';
 import {TabView} from 'react-native-tab-view';
-// const songDetails = {
-//   id: '1',
-//   url: 'https://audio-previews.elements.envatousercontent.com/files/103682271/preview.mp3',
-//   title: 'The Greatest Song',
-//   album: 'Great Album',
-//   artist: 'A Great Dude',
-//   artwork: 'https://picsum.photos/300',
-// };
+import axios from 'axios';
+import {API_HOSTING} from '@env';
+import {ChevronDownIcon} from 'react-native-heroicons/solid';
+import {
+  PauseIcon,
+  PlayIcon,
+  ShareIcon,
+  UploadIcon,
+} from 'react-native-heroicons/outline';
+import {UserContext} from '../../providers/UserProvider';
+import {PodcastContext} from '../../providers/PodcastDetailProvider';
+import Comment from '../../components/Comment';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../RootStackPrams';
+import {useNavigation} from '@react-navigation/native';
+// import RotateCCW from '../../assets/icons/arrow-clockwise.svg';
+// import RotateCW from '../../assets/icons/arrow-clockwise.svg';
+import {SvgUri} from 'react-native-svg';
+type downloadTemp = {
+  title: string;
+  description: string;
+  imgUrl: string;
+  audioUrl: string;
+  date: string;
+  uuid: string;
+  duration: number;
+};
+const songDetails = {
+  id: '1',
+  url: 'https://audio-previews.elements.envatousercontent.com/files/103682271/preview.mp3',
+  title: 'The Greatest Song',
+  album: 'Great Album',
+  artist: 'A Great Dude',
+  artwork: 'https://picsum.photos/300',
+};
+
+type authScreenProp = StackNavigationProp<
+  RootStackParamList,
+  'MediaPlayerModalScreen'
+>;
 export default function MediaPlayerModalScreen() {
   const trackPlayerInit = async () => {
     await TrackPlayer.setupPlayer();
-    TrackPlayer.registerPlaybackService(() => require('../service.ts'));
-
     TrackPlayer.updateOptions({
       stopWithApp: true,
       capabilities: [
@@ -51,16 +83,29 @@ export default function MediaPlayerModalScreen() {
     await TrackPlayer.add({
       // id: songDetails.id,
       url: playData?.audioUrl,
-      type: TrackType.Default,
       title: playData?.title,
+      artwork: playData?.imgUrl,
+      // url: songDetails?.url,
+      type: TrackType.Default,
+      // title: songDetails?.title,
       // album: songDetails.album,
       // artist: songDetails.artist,
-      artwork: playData?.imgUrl,
+      // artwork: songDetails?.artwork,
     });
     return true;
   };
+  function renderIcon() {
+    if (isPlaying === 'buffering') {
+      return <ActivityIndicator size={30} color="black" />;
+    } else if (isPlaying === 'pause') {
+      return <PlayIcon size={25} color="#000" />;
+    } else if (isPlaying === 'play') {
+      return <PauseIcon size={25} color="#000" />;
+    }
+  }
+  const navigation = useNavigation<authScreenProp>();
   const [isTrackPlayerInit, setIsTrackPlayerInit] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState('buffering');
   const [sliderValue, setSliderValue] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
   const {position, duration} = useProgress(250);
@@ -69,6 +114,7 @@ export default function MediaPlayerModalScreen() {
     const startPlayer = async () => {
       let isInit = await trackPlayerInit();
       setIsTrackPlayerInit(isInit);
+      setIsPlaying('pause');
     };
     startPlayer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,24 +128,25 @@ export default function MediaPlayerModalScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position, duration]);
 
-  useTrackPlayerEvents([Event?.PlaybackState], event => {
+  useTrackPlayerEvents([Event?.PlaybackState], (event: any) => {
     if (event.state === State?.Playing) {
-      setIsPlaying(true);
+      setIsPlaying('play');
     } else {
-      setIsPlaying(false);
+      setIsPlaying('pause');
     }
   });
 
   const onButtonPressed = () => {
     if (!isPlaying) {
       TrackPlayer?.play();
-      setIsPlaying(true);
+      setIsPlaying('play');
     } else {
       TrackPlayer?.pause();
-      setIsPlaying(false);
+      setIsPlaying('pause');
     }
   };
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const timeControll = async (time: number) => {};
   const slidingStarted = () => {
     setIsSeeking(true);
   };
@@ -139,7 +186,9 @@ export default function MediaPlayerModalScreen() {
     setSleepVisiblity(true);
   };
 
-  const pauseAudio = () => {};
+  const pauseAudio = () => {
+    setSleepVisiblity(false);
+  };
 
   useEffect(() => {
     if (timeCounter <= 1) {
@@ -180,21 +229,58 @@ export default function MediaPlayerModalScreen() {
         <View>
           <Slider
             // style={styles.progressBar}
+            style={tw` mt-2 w-85 mx-5`}
+            thumbTintColor={'#fff'}
+            minimumTrackTintColor={'pink'}
+            maximumTrackTintColor="#8E9092"
             minimumValue={0}
             maximumValue={1}
             value={sliderValue}
-            minimumTrackTintColor="#111000"
-            maximumTrackTintColor="#000000"
             onSlidingStart={slidingStarted}
             onSlidingComplete={slidingCompleted}
-            thumbTintColor="#000"
           />
-          <Button
+          {/* <Button
             label={isPlaying ? 'Pause' : 'Play'}
             action={onButtonPressed}
             isPending={!isTrackPlayerInit}
             type={'secondary'}
-          />
+          /> */}
+
+          <View style={tw`flex-row justify-between items-center`}>
+            <TouchableOpacity
+              onPress={() => {
+                timeControll(-15);
+              }}>
+              <View style={tw`relative`}>
+                {/* <RotateCCW style={tw`w-12 h-12`} /> */}
+                <SvgUri
+                  style={tw`w-12 h-12`}
+                  uri="../../assets/icons/arrow-clockwise.svg"
+                />
+                <Text style={tw`text-white absolute left-3.5 top-3.5`}>15</Text>
+              </View>
+            </TouchableOpacity>
+            <Pressable
+              style={tw`mx-10 bg-white  justify-center items-center h-16 w-16 rounded-full`}
+              onPress={onButtonPressed}>
+              {renderIcon()}
+            </Pressable>
+            <TouchableOpacity
+              onPress={() => {
+                timeControll(15);
+              }}>
+              <View style={tw`relative`}>
+                {/* <RotateCW style={tw`w-12 h-12`} /> */}
+                <SvgUri
+                  // style={tw`w-12 h-12`}
+                  width="100%"
+                  height="100%"
+                  uri="../../assets/icons/arrow-clockwise.svg"
+                />
+                <Text style={tw`text-white absolute left-3.5 top-3.5`}>15</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
         <View
           style={tw`mx-6 justify-end mt-10  w-10.3/12 h-13 flex-row bg-white bg-opacity-10 rounded-xl justify-between items-center`}>
@@ -422,9 +508,312 @@ export default function MediaPlayerModalScreen() {
     </View>
   );
 
+  const {episodeDetail, setEpisodeDetail, miniPlayer} =
+    useContext(EpisodeContext);
+  const {accessToken, setAccessToken} = useContext(UserContext);
+  const {podcastDetail} = useContext(PodcastContext);
+  const [isPendingComment, setIsPendingComment] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [commentText, setCommentText] = useState<string>('');
+  const [commentList, setCommentList] = useState<Array<any>>([]);
+  const episodeValue = JSON.parse(episodeDetail);
+  const getEpisodeInfo = async () => {
+    try {
+      setIsPendingComment(true);
+      const res = await axios.get(
+        `${API_HOSTING}episodes/${episodeValue.uuid}/comments`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      setCommentList(res.data);
+      setIsPendingComment(false);
+    } catch (error) {
+      setIsPendingComment(false);
+      console.log(error);
+    }
+  };
+
+  const postComment = async () => {
+    try {
+      setIsPending(true);
+      const res = await axios.post(
+        `${API_HOSTING}episodes/${episodeValue.uuid}/comments`,
+        {
+          content: commentText,
+          feed: podcastDetail,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      setIsPending(false);
+      console.log('start postcomment');
+      setCommentText('');
+      setCommentList(prev => [...prev, res.data]);
+      console.log('newcomment: ', res.data);
+    } catch (error: any) {
+      setIsPending(false);
+      console.log(error);
+      if (error.toJSON().status == 401) {
+        setAccessToken('');
+        await AsyncStorage.setItem('accessToken', '');
+        await AsyncStorage.setItem('refreshToken', '');
+      }
+    }
+  };
+
+  const replyComment = async () => {};
+
+  const voteUp = (index: number, vote: string | null, id: string) => {
+    try {
+      console.log('up');
+      if (vote === 'up') {
+        axios.delete(`${API_HOSTING}vote/${id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        const tempList = [...commentList];
+        tempList[index].userVote = null;
+        tempList[index].voteCount--;
+        setCommentList(tempList);
+      } else {
+        axios.post(
+          `${API_HOSTING}vote/${id}`,
+          {
+            type: true,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+        );
+        const tempList = [...commentList];
+        tempList[index].userVote = 'up';
+        tempList[index].voteCount += vote === 'down' ? 2 : 1;
+        setCommentList(tempList);
+      }
+    } catch (error: any) {
+      console.log(error);
+      if (error.toJSON().status == 401) {
+        setAccessToken('');
+        AsyncStorage.setItem('accessToken', '');
+        AsyncStorage.setItem('refreshToken', '');
+      }
+    }
+  };
+
+  const voteDown = (index: number, vote: string | null, id: string) => {
+    try {
+      if (vote === 'down') {
+        axios.delete(`${API_HOSTING}vote/${id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        const tempList = [...commentList];
+        tempList[index].userVote = null;
+        tempList[index].voteCount++;
+        setCommentList(tempList);
+      } else {
+        axios.post(
+          `${API_HOSTING}vote/${id}`,
+          {
+            type: false,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+        );
+        const tempList = [...commentList];
+        tempList[index].userVote = 'down';
+        tempList[index].voteCount -= vote === 'up' ? 2 : 1;
+        setCommentList(tempList);
+      }
+    } catch (error: any) {
+      console.log(error);
+      if (error.toJSON().status == 401) {
+        setAccessToken('');
+        AsyncStorage.setItem('accessToken', '');
+        AsyncStorage.setItem('refreshToken', '');
+      }
+    }
+  };
+
+  const player = async (item: any) => {
+    const downloadTemp: downloadTemp = {
+      title: item.title,
+      description: item.description,
+      imgUrl: item.image,
+      audioUrl: item.enclosure.url,
+      date: item.pubDate,
+      uuid: item.uuid,
+      duration: item.duration,
+    };
+    await AsyncStorage.setItem('playItem', JSON.stringify(downloadTemp));
+    setEpisodeDetail(JSON.stringify(downloadTemp));
+    setMiniPlayer(false);
+    await navigation.navigate('MediaPlayerModalScreen');
+  };
+
+  useEffect(() => {
+    getEpisodeInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [episodeDetail]);
   const SecondRoute = () => (
-    <View style={tw`flex-1`}>
-      <ScrollView contentContainerStyle={tw.style('pb-16')}>{}</ScrollView>
+    <View style={tw.style('  bg-black min-h-full flex-row justify-center')}>
+      <View style={tw`bg-black min-h-full w-11/12`}>
+        <View style={tw`flex-row bg-black`}>
+          <View style={tw`flex-row bg-black flex-1`}>
+            <View style={tw`h-20 w-20 mr-3 rounded-xl`}>
+              <Image
+                style={tw.style('min-w-full min-h-full ')}
+                source={{
+                  uri: episodeValue?.image,
+                }}
+              />
+            </View>
+            <View style={tw`bg-black flex-1 py-1`}>
+              <Text
+                style={[tw.style('text-white text-xl font-bold pr-2')]}
+                ellipsizeMode="tail"
+                numberOfLines={3}>
+                {episodeValue?.title}
+              </Text>
+              <Text
+                style={tw.style('text-white text-opacity-60 text-xs mt-1')}
+                ellipsizeMode="tail"
+                numberOfLines={2}>
+                {episodeValue?.author}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View style={tw`bg-black mt-3`}>
+          <Text
+            style={tw`text-white text-12 text-opacity-60 leading-5`}
+            ellipsizeMode="tail"
+            numberOfLines={2}>
+            {episodeValue?.description}
+          </Text>
+        </View>
+        <View
+          style={tw`flex-row my-5 w-12/12 bg-black justify-center items-center border-l-0 border-r-0 border-t border-b border-gray-800 py-2`}>
+          <TouchableOpacity
+            onPress={() => {
+              player(episodeValue);
+            }}>
+            <PlayIcon style={tw`text-blue-500 mr-5`} />
+          </TouchableOpacity>
+          <Text
+            style={tw`text-white px-5 text-opacity-60 w-32`}
+            ellipsizeMode="tail"
+            numberOfLines={1}>
+            {episodeValue?.pubDate?.split(' ')[0]}
+            {episodeValue?.date?.split(' ')[0]}{' '}
+          </Text>
+          <Text style={tw`text-white px-5 text-opacity-60`}>
+            {Math.ceil(episodeValue?.duration / 60)}m
+          </Text>
+          <TouchableOpacity onPress={() => {}}>
+            <View style={tw`pl-5 bg-black flex-row items-center`}>
+              <ShareIcon
+                style={tw`text-white text-opacity-60`}
+                width={20}
+                height={20}
+              />
+              <Text style={tw`text-white text-opacity-60`}> Share</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity>
+          <View
+            style={tw`bg-gray-900 flex-row justify-center items-center w-30`}>
+            <Text style={tw`text-white text-opacity-60 mr-1 text-12`}>
+              BEST COMMENT
+            </Text>
+            <ChevronDownIcon style={tw`text-white text-opacity-60`} />
+          </View>
+        </TouchableOpacity>
+        <View style={tw`flex-1 bg-black`}>
+          <ScrollView contentContainerStyle={tw.style('pb-16  bg-black pt-3')}>
+            {isPendingComment ? (
+              <ActivityIndicator color={'#ffffff'} size={'large'} />
+            ) : (
+              commentList.length > 0 &&
+              commentList.map((item, index: number) => (
+                <View
+                  key={index}
+                  style={tw`border-l border-r-0 border-t-0 border-b-0 border-gray-800 bg-black pl-3 py-1`}>
+                  <Comment
+                    name={item?.owner?.username}
+                    text={item?.content}
+                    follow={item?.voteCount}
+                    actionReply={() => replyComment()}
+                    actionUp={() => voteUp(index, item?.userVote, item?.id)}
+                    actionDown={() => voteDown(index, item?.userVote, item?.id)}
+                  />
+                  {item?.childs?.length > 0 &&
+                    item?.childs.map((chItem: any, chIndex: number) => (
+                      <View
+                        key={chIndex}
+                        style={tw`border-l border-r-0 border-t-0 border-b-0 border-gray-800 bg-black pl-3 py-1`}>
+                        <Comment
+                          name={chItem?.owner?.username}
+                          text={chItem?.content}
+                          follow={chItem?.voteCount}
+                          actionUp={() =>
+                            voteUp(chIndex, chItem?.userVote, chItem?.id)
+                          }
+                          actionDown={() =>
+                            voteDown(chIndex, chItem?.userVote, chItem?.id)
+                          }
+                        />
+                      </View>
+                    ))}
+                </View>
+              ))
+            )}
+          </ScrollView>
+        </View>
+        <View style={tw`mt-5 justify-end mb-3`}>
+          <View
+            style={tw.style(
+              'rounded-lg px-1 pr-2 bg-white bg-opacity-10  flex-row items-center',
+            )}>
+            <TextInput
+              style={tw.style('ml-2 text-white flex-1 text-sm text-opacity-80')}
+              placeholderTextColor={'#888888'}
+              placeholder="comment"
+              scrollEnabled
+              multiline={true}
+              numberOfLines={2}
+              value={commentText}
+              onChangeText={(text: string) => setCommentText(text)}
+            />
+            <TouchableOpacity
+              onPress={() => {
+                postComment();
+              }}>
+              {isPending ? (
+                <ActivityIndicator color={'#ffffff'} size={'small'} />
+              ) : (
+                <UploadIcon
+                  style={tw`mt-0.5 text-white text-opacity-60 bg-opacity-40`}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
     </View>
   );
 
@@ -458,7 +847,7 @@ export default function MediaPlayerModalScreen() {
               {...props}
               style={tw`bg-black p-0 mx-0 w-full`}
               indicatorStyle={tw`bg-blue-500`}
-              labelStyle={tw`text-10 text-left`}
+              labelStyle={tw`text-sm text-left`}
               tabStyle={tw`md:w-auto p-0`}
             />
           )}

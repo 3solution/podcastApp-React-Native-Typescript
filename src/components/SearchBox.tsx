@@ -32,10 +32,12 @@ const SearchBox: React.FC<Props> = ({
     </View>
   ) : (
     <View
-      style={tw.style('rounded-lg px-1 pr-2 bg-white bg-opacity-10  flex-row')}>
-      <SearchIcon style={tw`mt-0.5 text-white text-opacity-60 `} />
+      style={tw.style(
+        'rounded-lg px-1 pr-2 bg-white bg-opacity-10 flex-row itmes-center',
+      )}>
+      <SearchIcon style={tw`mt-3 text-white text-opacity-60 flex-1`} />
       <TextInput
-        style={tw.style('ml-2 text-white flex-1 text-sm text-opacity-80')}
+        style={tw.style('ml-2 text-white text-sm text-opacity-80')}
         placeholderTextColor={'#888888'}
         placeholder={placeholder}
         value={value}
