@@ -146,13 +146,21 @@ android {
         }
     }
     signingConfigs {
-        debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+        // debug {
+        //     storeFile file('debug.keystore')
+        //     storePassword 'android'
+        //     keyAlias 'androiddebugkey'
+        //     keyPassword 'android'
+        // }
+          
+        release {
+            storeFile file('your_key_name.keystore')
+            storePassword 'podcast'
+            keyAlias 'your_key_alias'
+            keyPassword 'podcast'
         }
     }
+    
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
@@ -168,6 +176,7 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
         }
     }
 

@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   ScrollView,
   Text,
@@ -12,19 +12,24 @@ import axios from 'axios';
 
 // import {RootTabScreenProps} from '../../types';
 import DiscoverItem from '../../components/DiscoverItem';
-import {API_HOSTING} from '@env';
+import { API_HOSTING } from '@env';
 import SearchBox from '../../components/SearchBox';
 import useDebounce from '../../hooks/useDebounce';
-import {PlusIcon} from 'react-native-heroicons/solid';
-import {PodcastContext} from '../../providers/PodcastDetailProvider';
+import { PlusIcon } from 'react-native-heroicons/solid';
+import { PodcastContext } from '../../providers/PodcastDetailProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {UserContext} from '../../providers/UserProvider';
-import {CheckIcon} from 'react-native-heroicons/outline';
-import {CompositeNavigationProp, useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootStackParamList} from '../RootStackPrams';
-import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
-import {MainBottomTabParamList} from './MainBottomTabParams';
+import { UserContext } from '../../providers/UserProvider';
+import { CheckIcon } from 'react-native-heroicons/outline';
+import {
+  CompositeNavigationProp,
+  useNavigation,
+} from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../RootStackPrams';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { MainBottomTabParamList } from './MainBottomTabParams';
+import { EpisodeContext } from '../../providers/EpisodeCommentProvider';
+import MiniPlayer from '../../components/MiniPlayer';
 
 type HomeScreenProp = CompositeNavigationProp<
   StackNavigationProp<RootStackParamList, 'Main'>,
@@ -49,7 +54,9 @@ export default function Discover() {
     following,
     setPodcastValue,
   } = useContext(PodcastContext);
-  const {accessToken, setAccessToken} = useContext(UserContext);
+  const { accessToken, setAccessToken } = useContext(UserContext);
+  const { setMiniPlayerPosition, miniPlayerPosition } =
+    useContext(EpisodeContext);
 
   function followIcon(state: any) {
     if (state === false || state === null) {
@@ -126,6 +133,11 @@ export default function Discover() {
   }, []);
 
   useEffect(() => {
+    setMiniPlayerPosition(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [miniPlayerPosition]);
+
+  useEffect(() => {
     if (searchText !== '') {
       getListSearchResult();
     }
@@ -176,7 +188,7 @@ export default function Discover() {
   };
 
   return (
-    <View style={tw`pb-3`}>
+    <View style={tw`mb-5`}>
       <View style={tw`h-6 bg-black`} />
       <ScrollView
         contentContainerStyle={tw.style('pb-30 px-4 bg-black min-h-full pt-3')}>
@@ -311,16 +323,7 @@ export default function Discover() {
           ))
         )}
       </ScrollView>
-      {/* <SafeAreaView style={styles.container}>
-        <StatusBar
-          barStyle="light-content"
-          animated={true}
-          backgroundColor="#bbb"
-        />
-        <Text style={{ color: "#fff" }}>
-          Demonstration of Status Bar from Alarmy's app
-        </Text>
-      </SafeAreaView> */}
+      <MiniPlayer position={true} />
     </View>
   );
 }

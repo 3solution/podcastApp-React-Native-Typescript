@@ -5,12 +5,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import React, {useContext, useEffect, useState} from 'react';
-import {format} from 'date-fns';
+import React, { useContext, useEffect, useState } from 'react';
+import { format } from 'date-fns';
 import tw from 'twrnc';
 import axios from 'axios';
 
-import {API_HOSTING} from '@env';
+import { API_HOSTING } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NewReleaseItem from '../../components/NewReleaseItem';
 import {
@@ -18,17 +18,21 @@ import {
   CloudDownloadIcon,
   PlayIcon,
 } from 'react-native-heroicons/outline';
-import {UserContext} from '../../providers/UserProvider';
-import {EpisodeContext} from '../../providers/EpisodeCommentProvider';
+import { UserContext } from '../../providers/UserProvider';
+import { EpisodeContext } from '../../providers/EpisodeCommentProvider';
 // import * as FileSystem from 'expo-file-system';
 import RNFS from 'react-native-fs';
-import {PodcastContext} from '../../providers/PodcastDetailProvider';
+import { PodcastContext } from '../../providers/PodcastDetailProvider';
 import Button from '../../components/Button';
-import {CompositeNavigationProp, useNavigation} from '@react-navigation/native';
-import {RootStackParamList} from '../RootStackPrams';
-import {MainBottomTabParamList} from './MainBottomTabParams';
-import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
-import {StackNavigationProp} from '@react-navigation/stack';
+import {
+  CompositeNavigationProp,
+  useNavigation,
+} from '@react-navigation/native';
+import { RootStackParamList } from '../RootStackPrams';
+import { MainBottomTabParamList } from './MainBottomTabParams';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { StackNavigationProp } from '@react-navigation/stack';
+import MiniPlayer from '../../components/MiniPlayer';
 // import { openDatabase } from "";
 
 type ListData = {
@@ -54,9 +58,10 @@ export default function New() {
   const [newList, setNewList] = useState<ListData>({});
   const [isPending, setIsPending] = useState(false);
   const [isPendingLoadMore, setIsPendingLoadMore] = useState(false);
-  const {accessToken, setAccessToken} = useContext(UserContext);
-  const {setEpisodeDetail, setMiniPlayer} = useContext(EpisodeContext);
-  const {download, setDownload} = useContext(PodcastContext);
+  const { accessToken, setAccessToken } = useContext(UserContext);
+  const { setEpisodeDetail, setMiniPlayer, setMiniPlayerPosition } =
+    useContext(EpisodeContext);
+  const { download, setDownload } = useContext(PodcastContext);
   const [pageNum, setPageNum] = useState(2);
   // const [downloadList, setDownloadList] = useState<Array<any>>([]);
   // let downloadList = [];
@@ -126,12 +131,14 @@ export default function New() {
       console.log(error);
     }
   };
-  // console.log("newList: ", newList);
-  // console.log("downloadList ", download);
 
   useEffect(() => {
-    // AsyncStorage.setItem("downloadList", "");
     getListNew();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    setMiniPlayerPosition(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -144,7 +151,7 @@ export default function New() {
   const downloadApply = async (item: any, groupKey: any, index: number) => {
     console.log('start download');
     if (item.downloadState == 0) {
-      const downloadingTempList = {...newList};
+      const downloadingTempList = { ...newList };
       downloadingTempList[groupKey][index].downloadState = 1;
       setNewList(downloadingTempList);
 
@@ -157,32 +164,15 @@ export default function New() {
       const time =
         year + '-' + month + '-' + date + '-' + hours + '-' + min + '-' + sec;
 
-      // const fileUri: string = `${FileSystem.documentDirectory}${time + '.mp3'}`;
-      // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      // const downloadedFile: FileSystem.FileSystemDownloadResult =
-      //   await FileSystem.downloadAsync(item.enclosure.url, fileUri);
-      // console.log(
-      //   'FileSystem.documentDirectory: ',
-      //   FileSystem.documentDirectory,
-      // );
       console.log('RNFS.DocumentDirectoryPath: ', RNFS.DocumentDirectoryPath);
       const fileUri = `${RNFS.DocumentDirectoryPath}/${time}.mp3`;
-      // const headers = {
-      //   Accept: 'application/pdf',
-      //   'Content-Type': 'application/pdf',
-      //   Authorization: 'Bearer [token]',
-      // };
-      //Define options
       const options: RNFS.DownloadFileOptions = {
         fromUrl: item.enclosure.url,
         toFile: fileUri,
-        // headers: headers,
       };
-      //Call downloadFile
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       await RNFS.downloadFile(options).promise;
       console.log('download end');
-      const downloadedTempList = {...newList};
+      const downloadedTempList = { ...newList };
       downloadedTempList[groupKey][index].downloadState = 2;
       setNewList(downloadedTempList);
 
@@ -198,7 +188,6 @@ export default function New() {
       const downloadPrev = await AsyncStorage.getItem('downloadList');
       console.log('downloadPrev: ', downloadPrev);
       if (downloadPrev === null || downloadPrev === '') {
-        // setDownloadList(downloadTemp);
         await AsyncStorage.setItem(
           'downloadList',
           '[' + JSON.stringify(downloadTemp) + ']',
@@ -211,6 +200,7 @@ export default function New() {
         setDownload(temp);
         console.log('temp: ', temp);
       }
+      return;
     }
     if (item.downloadState == 2) {
       const downloadTemp: downloadTemp = {
@@ -258,7 +248,7 @@ export default function New() {
           listData[dateKey] = [item];
         }
       });
-      setNewList({...newList, ...listData});
+      setNewList({ ...newList, ...listData });
       setIsPendingLoadMore(false);
       setPageNum(num + 1);
     } catch (error: any) {
@@ -276,7 +266,7 @@ export default function New() {
   console.log('newTest');
 
   return (
-    <View style={tw`pb-3`}>
+    <View style={tw`mb-5`}>
       <View style={tw`h-6 bg-black`} />
       <ScrollView
         contentContainerStyle={tw.style(
@@ -341,6 +331,7 @@ export default function New() {
           action={() => loadMore(pageNum)}
         />
       </ScrollView>
+      <MiniPlayer position={true} />
     </View>
   );
 }

@@ -1,4 +1,4 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -11,16 +11,21 @@ import {
 import tw from '../../modules/tailwind';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import {API_HOSTING} from '@env';
-import {ChevronDownIcon} from 'react-native-heroicons/solid';
-import {PlayIcon, ShareIcon, UploadIcon} from 'react-native-heroicons/outline';
-import {UserContext} from '../../providers/UserProvider';
-import {EpisodeContext} from '../../providers/EpisodeCommentProvider';
-import {PodcastContext} from '../../providers/PodcastDetailProvider';
+import { API_HOSTING } from '@env';
+import { ChevronDownIcon } from 'react-native-heroicons/solid';
+import {
+  PlayIcon,
+  ShareIcon,
+  UploadIcon,
+} from 'react-native-heroicons/outline';
+import { UserContext } from '../../providers/UserProvider';
+import { EpisodeContext } from '../../providers/EpisodeCommentProvider';
+import { PodcastContext } from '../../providers/PodcastDetailProvider';
 import Comment from '../../components/Comment';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootStackParamList} from '../RootStackPrams';
-import {useNavigation} from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../RootStackPrams';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import MiniPlayer from '../../components/MiniPlayer';
 
 type downloadTemp = {
   title: string;
@@ -35,10 +40,15 @@ type authScreenProp = StackNavigationProp<RootStackParamList, 'PodcastDetail'>;
 
 export default function EpisodeComment() {
   const navigation = useNavigation<authScreenProp>();
-  const {episodeDetail, setMiniPlayer, setEpisodeDetail, miniPlayer} =
-    useContext(EpisodeContext);
-  const {accessToken, setAccessToken} = useContext(UserContext);
-  const {podcastDetail} = useContext(PodcastContext);
+  const {
+    episodeDetail,
+    setMiniPlayer,
+    setEpisodeDetail,
+    miniPlayer,
+    setMiniPlayerPosition,
+  } = useContext(EpisodeContext);
+  const { accessToken, setAccessToken } = useContext(UserContext);
+  const { podcastDetail } = useContext(PodcastContext);
 
   const [isPendingComment, setIsPendingComment] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -197,189 +207,209 @@ export default function EpisodeComment() {
     getEpisodeInfo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [episodeDetail]);
+
+  useEffect(() => {
+    setMiniPlayerPosition(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      setMiniPlayerPosition(false);
+      return () => {
+        setMiniPlayerPosition(false);
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
   // console.log("episodeValue: ", episodeValue);
   return (
-    <View style={tw.style('  bg-black min-h-full flex-row justify-center')}>
-      <View style={tw`bg-black min-h-full w-11/12`}>
-        <View style={tw`flex-row bg-black`}>
-          <View style={tw`flex-row bg-black flex-1`}>
-            <View style={tw`h-20 w-20 mr-3 rounded-xl`}>
-              <Image
-                style={tw.style('min-w-full min-h-full ')}
-                source={{
-                  uri: episodeValue?.image,
-                }}
-              />
-            </View>
-            <View style={tw`bg-black flex-1 py-1`}>
-              <Text
-                style={[tw.style('text-white text-xl font-bold pr-2')]}
-                ellipsizeMode="tail"
-                numberOfLines={3}>
-                {episodeValue?.title}
-              </Text>
-              <Text
-                style={tw.style('text-white text-opacity-60 text-xs mt-1')}
-                ellipsizeMode="tail"
-                numberOfLines={2}>
-                {episodeValue?.author}
-              </Text>
+    <>
+      <View style={tw.style('  bg-black min-h-full flex-row justify-center')}>
+        <View style={tw`bg-black min-h-full w-11/12`}>
+          <View style={tw`flex-row bg-black`}>
+            <View style={tw`flex-row bg-black flex-1`}>
+              <View style={tw`h-20 w-20 mr-3 rounded-xl`}>
+                <Image
+                  style={tw.style('min-w-full min-h-full ')}
+                  source={{
+                    uri: episodeValue?.image,
+                  }}
+                />
+              </View>
+              <View style={tw`bg-black flex-1 py-1`}>
+                <Text
+                  style={[tw.style('text-white text-xl font-bold pr-2')]}
+                  ellipsizeMode="tail"
+                  numberOfLines={3}>
+                  {episodeValue?.title}
+                </Text>
+                <Text
+                  style={tw.style('text-white text-opacity-60 text-xs mt-1')}
+                  ellipsizeMode="tail"
+                  numberOfLines={2}>
+                  {episodeValue?.author}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
-        <View style={tw`bg-black mt-3`}>
-          <Text
-            style={tw`text-white text-12 text-opacity-60 leading-5`}
-            ellipsizeMode="tail"
-            numberOfLines={2}>
-            {episodeValue?.description}
-          </Text>
-        </View>
-        <View
-          style={tw`flex-row my-5 w-12/12 bg-black justify-center items-center border-l-0 border-r-0 border-t border-b border-gray-800 py-2`}>
-          <TouchableOpacity
-            onPress={() => {
-              player(episodeValue);
-            }}>
-            <PlayIcon style={tw`text-blue-500 mr-5`} />
-          </TouchableOpacity>
-          <Text
-            style={tw`text-white px-5 text-opacity-60 w-32`}
-            ellipsizeMode="tail"
-            numberOfLines={1}>
-            {episodeValue?.pubDate?.split(' ')[0]}
-            {episodeValue?.date?.split(' ')[0]}{' '}
-          </Text>
-          <Text style={tw`text-white px-5 text-opacity-60`}>
-            {Math.ceil(episodeValue?.duration / 60)}m
-          </Text>
-          <TouchableOpacity onPress={() => {}}>
-            <View style={tw`pl-5 bg-black flex-row items-center`}>
-              <ShareIcon
-                style={tw`text-white text-opacity-60`}
-                width={20}
-                height={20}
-              />
-              <Text style={tw`text-white text-opacity-60`}> Share</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity>
-          <View
-            style={tw`bg-gray-900 flex-row justify-center items-center w-30`}>
-            <Text style={tw`text-white text-opacity-60 mr-1 text-12`}>
-              BEST COMMENT
+          <View style={tw`bg-black mt-3`}>
+            <Text
+              style={tw`text-white text-12 text-opacity-60 leading-5`}
+              ellipsizeMode="tail"
+              numberOfLines={2}>
+              {episodeValue?.description}
             </Text>
-            <ChevronDownIcon style={tw`text-white text-opacity-60`} />
           </View>
-        </TouchableOpacity>
-        <View style={tw`flex-1 bg-black`}>
-          <ScrollView contentContainerStyle={tw.style('pb-16  bg-black pt-3')}>
-            {isPendingComment ? (
-              <ActivityIndicator color={'#ffffff'} size={'large'} />
-            ) : (
-              commentList.length > 0 &&
-              commentList.map((item, index: number) => (
-                <View
-                  key={index}
-                  style={tw`border-l border-r-0 border-t-0 border-b-0 border-gray-800 bg-black pl-3 py-1`}>
-                  <Comment
-                    name={item?.owner?.username}
-                    text={item?.content}
-                    follow={item?.voteCount}
-                    actionReply={() => replyComment()}
-                    actionUp={() => voteUp(index, item?.userVote, item?.id)}
-                    actionDown={() => voteDown(index, item?.userVote, item?.id)}
-                  />
-                  {item?.childs?.length > 0 &&
-                    item?.childs.map((chItem: any, chIndex: number) => (
-                      <View
-                        key={chIndex}
-                        style={tw`border-l border-r-0 border-t-0 border-b-0 border-gray-800 bg-black pl-3 py-1`}>
-                        <Comment
-                          name={chItem?.owner?.username}
-                          text={chItem?.content}
-                          follow={chItem?.voteCount}
-                          actionUp={() =>
-                            voteUp(chIndex, chItem?.userVote, chItem?.id)
-                          }
-                          actionDown={() =>
-                            voteDown(chIndex, chItem?.userVote, chItem?.id)
-                          }
-                        />
-                      </View>
-                    ))}
-                </View>
-              ))
-            )}
-          </ScrollView>
+          <View
+            style={tw`flex-row my-5 w-12/12 bg-black justify-center items-center border-l-0 border-r-0 border-t border-b border-gray-800 py-2`}>
+            <TouchableOpacity
+              onPress={() => {
+                player(episodeValue);
+              }}>
+              <PlayIcon style={tw`text-blue-500 mr-5`} />
+            </TouchableOpacity>
+            <Text
+              style={tw`text-white px-5 text-opacity-60 w-32`}
+              ellipsizeMode="tail"
+              numberOfLines={1}>
+              {episodeValue?.pubDate?.split(' ')[0]}
+              {episodeValue?.date?.split(' ')[0]}{' '}
+            </Text>
+            <Text style={tw`text-white px-5 text-opacity-60`}>
+              {Math.ceil(episodeValue?.duration / 60)}m
+            </Text>
+            <TouchableOpacity onPress={() => {}}>
+              <View style={tw`pl-5 bg-black flex-row items-center`}>
+                <ShareIcon
+                  style={tw`text-white text-opacity-60`}
+                  width={20}
+                  height={20}
+                />
+                <Text style={tw`text-white text-opacity-60`}> Share</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity>
+            <View
+              style={tw`bg-gray-900 flex-row justify-center items-center w-30`}>
+              <Text style={tw`text-white text-opacity-60 mr-1 text-12`}>
+                BEST COMMENT
+              </Text>
+              <ChevronDownIcon style={tw`text-white text-opacity-60`} />
+            </View>
+          </TouchableOpacity>
+          <View style={tw`flex-1 bg-black`}>
+            <ScrollView
+              contentContainerStyle={tw.style('pb-16  bg-black pt-3')}>
+              {isPendingComment ? (
+                <ActivityIndicator color={'#ffffff'} size={'large'} />
+              ) : (
+                commentList.length > 0 &&
+                commentList.map((item, index: number) => (
+                  <View
+                    key={index}
+                    style={tw`border-l border-r-0 border-t-0 border-b-0 border-gray-800 bg-black pl-3 py-1`}>
+                    <Comment
+                      name={item?.owner?.username}
+                      text={item?.content}
+                      follow={item?.voteCount}
+                      actionReply={() => replyComment()}
+                      actionUp={() => voteUp(index, item?.userVote, item?.id)}
+                      actionDown={() =>
+                        voteDown(index, item?.userVote, item?.id)
+                      }
+                    />
+                    {item?.childs?.length > 0 &&
+                      item?.childs.map((chItem: any, chIndex: number) => (
+                        <View
+                          key={chIndex}
+                          style={tw`border-l border-r-0 border-t-0 border-b-0 border-gray-800 bg-black pl-3 py-1`}>
+                          <Comment
+                            name={chItem?.owner?.username}
+                            text={chItem?.content}
+                            follow={chItem?.voteCount}
+                            actionUp={() =>
+                              voteUp(chIndex, chItem?.userVote, chItem?.id)
+                            }
+                            actionDown={() =>
+                              voteDown(chIndex, chItem?.userVote, chItem?.id)
+                            }
+                          />
+                        </View>
+                      ))}
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          </View>
+          {miniPlayer ? (
+            <View style={tw`mt-5 justify-end mb-30`}>
+              <View
+                style={tw.style(
+                  'rounded-lg px-1 pr-2 bg-white bg-opacity-10  flex-row items-center',
+                )}>
+                <TextInput
+                  style={tw.style(
+                    'ml-2 text-white flex-1 text-sm text-opacity-80',
+                  )}
+                  placeholderTextColor={'#888888'}
+                  placeholder="comment"
+                  scrollEnabled
+                  multiline={true}
+                  numberOfLines={3}
+                  value={commentText}
+                  onChangeText={(text: string) => setCommentText(text)}
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    postComment();
+                  }}>
+                  {isPending ? (
+                    <ActivityIndicator color={'#ffffff'} size={'small'} />
+                  ) : (
+                    <UploadIcon
+                      style={tw`mt-0.5 text-white text-opacity-60 bg-opacity-40`}
+                    />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={tw`mt-5 justify-end mb-15`}>
+              <View
+                style={tw.style(
+                  'rounded-lg px-1 pr-2 bg-white bg-opacity-10  flex-row items-center',
+                )}>
+                <TextInput
+                  style={tw.style(
+                    'ml-2 text-white flex-1 text-sm text-opacity-80',
+                  )}
+                  placeholderTextColor={'#888888'}
+                  placeholder="comment"
+                  scrollEnabled
+                  multiline={true}
+                  numberOfLines={2}
+                  value={commentText}
+                  onChangeText={(text: string) => setCommentText(text)}
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    postComment();
+                  }}>
+                  {isPending ? (
+                    <ActivityIndicator color={'#ffffff'} size={'small'} />
+                  ) : (
+                    <UploadIcon
+                      style={tw`mt-0.5 text-white text-opacity-60 bg-opacity-40`}
+                    />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
-        {miniPlayer ? (
-          <View style={tw`mt-5 justify-end mb-28`}>
-            <View
-              style={tw.style(
-                'rounded-lg px-1 pr-2 bg-white bg-opacity-10  flex-row items-center',
-              )}>
-              <TextInput
-                style={tw.style(
-                  'ml-2 text-white flex-1 text-sm text-opacity-80',
-                )}
-                placeholderTextColor={'#888888'}
-                placeholder="comment"
-                scrollEnabled
-                multiline={true}
-                numberOfLines={3}
-                value={commentText}
-                onChangeText={(text: string) => setCommentText(text)}
-              />
-              <TouchableOpacity
-                onPress={() => {
-                  postComment();
-                }}>
-                {isPending ? (
-                  <ActivityIndicator color={'#ffffff'} size={'small'} />
-                ) : (
-                  <UploadIcon
-                    style={tw`mt-0.5 text-white text-opacity-60 bg-opacity-40`}
-                  />
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : (
-          <View style={tw`mt-5 justify-end mb-15`}>
-            <View
-              style={tw.style(
-                'rounded-lg px-1 pr-2 bg-white bg-opacity-10  flex-row items-center',
-              )}>
-              <TextInput
-                style={tw.style(
-                  'ml-2 text-white flex-1 text-sm text-opacity-80',
-                )}
-                placeholderTextColor={'#888888'}
-                placeholder="comment"
-                scrollEnabled
-                multiline={true}
-                numberOfLines={2}
-                value={commentText}
-                onChangeText={(text: string) => setCommentText(text)}
-              />
-              <TouchableOpacity
-                onPress={() => {
-                  postComment();
-                }}>
-                {isPending ? (
-                  <ActivityIndicator color={'#ffffff'} size={'small'} />
-                ) : (
-                  <UploadIcon
-                    style={tw`mt-0.5 text-white text-opacity-60 bg-opacity-40`}
-                  />
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
       </View>
-    </View>
+      <MiniPlayer position={false} />
+    </>
   );
 }

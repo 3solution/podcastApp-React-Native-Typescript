@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import { View, Text } from 'react-native';
 import tw from '../modules/tailwind';
 
 type Props = {
@@ -7,7 +7,7 @@ type Props = {
   episode: number;
   title: string;
 };
-const PodcastDetailItem: React.FC<Props> = ({date, episode, title}) => {
+const PodcastDetailItem: React.FC<Props> = ({ date, episode, title }) => {
   return (
     <View style={tw`bg-black flex-row items-center flex-1`}>
       <View style={tw`bg-black justify-center mr-2`}>

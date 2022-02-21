@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   ScrollView,
   View,
@@ -8,16 +8,18 @@ import {
 import DiscoverItem from '../../components/DiscoverItem';
 import tw from 'twrnc';
 import axios from 'axios';
-import {PlusIcon} from 'react-native-heroicons/solid';
-import {API_HOSTING} from '@env';
-import {PodcastContext} from '../../providers/PodcastDetailProvider';
-import {CheckIcon} from 'react-native-heroicons/outline';
-import {UserContext} from '../../providers/UserProvider';
+import { PlusIcon } from 'react-native-heroicons/solid';
+import { API_HOSTING } from '@env';
+import { PodcastContext } from '../../providers/PodcastDetailProvider';
+import { CheckIcon } from 'react-native-heroicons/outline';
+import { UserContext } from '../../providers/UserProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {RootStackParamList} from '../RootStackPrams';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {useNavigation} from '@react-navigation/native';
+import { RootStackParamList } from '../RootStackPrams';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
+import { EpisodeContext } from '../../providers/EpisodeCommentProvider';
+import MiniPlayer from '../../components/MiniPlayer';
 
 type authScreenProp = StackNavigationProp<RootStackParamList, 'Popular'>;
 
@@ -26,9 +28,11 @@ export default function Trending() {
 
   const [trendingList, setTrendingList] = useState<Array<any>>([]);
   const [isPendingTrend, setIsPendingTrend] = useState(false);
-  const {setPodcastDetail} = useContext(PodcastContext);
-  const {setFollowing, following, setPodcastValue} = useContext(PodcastContext);
-  const {accessToken, setAccessToken} = useContext(UserContext);
+  const { setPodcastDetail } = useContext(PodcastContext);
+  const { setFollowing, following, setPodcastValue } =
+    useContext(PodcastContext);
+  const { accessToken, setAccessToken } = useContext(UserContext);
+  const { setMiniPlayerPosition } = useContext(EpisodeContext);
 
   function followIcon(state: any) {
     if (state === false || state === null) {
@@ -63,7 +67,14 @@ export default function Trending() {
   };
   useEffect(() => {
     getListAllTrend();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setMiniPlayerPosition(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const goPodcastDetail = async (url: string, item: any) => {
     setPodcastDetail(url);
@@ -144,6 +155,7 @@ export default function Trending() {
           ))
         )}
       </ScrollView>
+      <MiniPlayer position={false} />
     </View>
   );
 }

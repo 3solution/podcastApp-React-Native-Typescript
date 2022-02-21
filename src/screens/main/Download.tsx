@@ -5,19 +5,23 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import React, {useContext, useEffect, useState} from 'react';
-import {format} from 'date-fns';
+import React, { useContext, useEffect, useState } from 'react';
+import { format } from 'date-fns';
 import tw from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NewReleaseItem from '../../components/NewReleaseItem';
-import {PlayIcon} from 'react-native-heroicons/outline';
-import {EpisodeContext} from '../../providers/EpisodeCommentProvider';
-import {PodcastContext} from '../../providers/PodcastDetailProvider';
-import {CompositeNavigationProp, useNavigation} from '@react-navigation/native';
-import {RootStackParamList} from '../RootStackPrams';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
-import {MainBottomTabParamList} from './MainBottomTabParams';
+import { PlayIcon } from 'react-native-heroicons/outline';
+import { EpisodeContext } from '../../providers/EpisodeCommentProvider';
+import { PodcastContext } from '../../providers/PodcastDetailProvider';
+import {
+  CompositeNavigationProp,
+  useNavigation,
+} from '@react-navigation/native';
+import { RootStackParamList } from '../RootStackPrams';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { MainBottomTabParamList } from './MainBottomTabParams';
+import MiniPlayer from '../../components/MiniPlayer';
 type ListData = {
   [key: string]: any[];
 };
@@ -28,8 +32,13 @@ type HomeScreenProp = CompositeNavigationProp<
 export default function Download() {
   const navigation = useNavigation<HomeScreenProp>();
   const [isPending] = useState(false);
-  const {setEpisodeDetail, setMiniPlayer} = useContext(EpisodeContext);
-  const {download} = useContext(PodcastContext);
+  const {
+    setEpisodeDetail,
+    setMiniPlayer,
+    setMiniPlayerPosition,
+    miniPlayerPosition,
+  } = useContext(EpisodeContext);
+  const { download } = useContext(PodcastContext);
   const [downloadList, setDownloadList] = useState<ListData>({});
 
   const getDownloadList = async () => {
@@ -54,6 +63,11 @@ export default function Download() {
     getDownloadList();
   }, [download]);
 
+  useEffect(() => {
+    setMiniPlayerPosition(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [miniPlayerPosition]);
+
   const goEpisode = async (episode: any) => {
     await AsyncStorage.setItem('episodeUuid', JSON.stringify(episode));
     setEpisodeDetail(JSON.stringify(episode));
@@ -68,7 +82,7 @@ export default function Download() {
   };
 
   return (
-    <View style={tw`pb-3`}>
+    <View style={tw`mb-5`}>
       <View style={tw`h-6 bg-black`} />
       <ScrollView
         contentContainerStyle={tw.style('pb-30 px-4 bg-black min-h-full pt-2')}>
@@ -124,6 +138,7 @@ export default function Download() {
           )}
         </View>
       </ScrollView>
+      <MiniPlayer position={true} />
     </View>
   );
 }

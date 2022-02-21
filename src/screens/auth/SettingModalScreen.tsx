@@ -1,12 +1,17 @@
-import {useContext, useEffect, useState} from 'react';
+import { useContext, useEffect, useState } from 'react';
 import React from 'react';
-import {Text, View, TouchableOpacity, Switch} from 'react-native';
-import {NativeBaseProvider} from 'native-base';
+import { Text, View, TouchableOpacity, Switch } from 'react-native';
+import { NativeBaseProvider } from 'native-base';
 import tw from '../../modules/tailwind';
 import axios from 'axios';
-import {API_HOSTING} from '@env';
-import {SpeakerphoneIcon, UserCircleIcon} from 'react-native-heroicons/outline';
-import {UserContext} from '../../providers/UserProvider';
+import { API_HOSTING } from '@env';
+import {
+  SpeakerphoneIcon,
+  UserCircleIcon,
+} from 'react-native-heroicons/outline';
+import { UserContext } from '../../providers/UserProvider';
+import { EpisodeContext } from '../../providers/EpisodeCommentProvider';
+import MiniPlayer from '../../components/MiniPlayer';
 
 export default function SettingModalScreen() {
   // const [nameValue, setNameValue] = useState<string>('');
@@ -17,7 +22,8 @@ export default function SettingModalScreen() {
   const [isEnabledDelete, setIsEnabledDelete] = useState(false);
   const [isEnabledStream, setIsEnabledStream] = useState(false);
   const [isEnabledHistory, setIsEnabledHistory] = useState(false);
-  const {accessToken, userInfo} = useContext(UserContext);
+  const { accessToken, userInfo } = useContext(UserContext);
+  const { setMiniPlayerPosition } = useContext(EpisodeContext);
 
   const deleteToggleSwitch = async () => {
     try {
@@ -91,6 +97,12 @@ export default function SettingModalScreen() {
 
   useEffect(() => {
     getUserInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    setMiniPlayerPosition(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -100,7 +112,7 @@ export default function SettingModalScreen() {
           <Text style={tw`text-white`}>Auto delete played files</Text>
           <View style={tw``}>
             <Switch
-              trackColor={{false: '#9CA3AF', true: '#93C5FD'}}
+              trackColor={{ false: '#9CA3AF', true: '#93C5FD' }}
               thumbColor={isEnabledDelete ? '#2563EB' : '#EFF6FF'}
               ios_backgroundColor="#3e3e3e"
               onValueChange={deleteToggleSwitch}
@@ -117,7 +129,7 @@ export default function SettingModalScreen() {
           </View>
           <View style={tw``}>
             <Switch
-              trackColor={{false: '#9CA3AF', true: '#93C5FD'}}
+              trackColor={{ false: '#9CA3AF', true: '#93C5FD' }}
               thumbColor={isEnabledStream ? '#2563EB' : '#EFF6FF'}
               ios_backgroundColor="#3e3e3e"
               onValueChange={streamToggleSwitch}
@@ -129,7 +141,7 @@ export default function SettingModalScreen() {
           <Text style={tw`text-white`}>Show listen history</Text>
           <View style={tw``}>
             <Switch
-              trackColor={{false: '#9CA3AF', true: '#93C5FD'}}
+              trackColor={{ false: '#9CA3AF', true: '#93C5FD' }}
               thumbColor={isEnabledHistory ? '#2563EB' : '#EFF6FF'}
               ios_backgroundColor="#3e3e3e"
               onValueChange={historyToggleSwitch}
@@ -149,6 +161,7 @@ export default function SettingModalScreen() {
             <Text style={tw`text-white`}>Account</Text>
           </View>
         </TouchableOpacity>
+        <MiniPlayer position={false} />
       </View>
     </NativeBaseProvider>
   );

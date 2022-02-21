@@ -7,20 +7,26 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {} from 'react-native-heroicons/outline';
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import tw from 'twrnc';
 import axios from 'axios';
 
-import {API_HOSTING} from '@env';
+import { API_HOSTING } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {UserContext} from '../../providers/UserProvider';
-import {PodcastContext} from '../../providers/PodcastDetailProvider';
-import {CompositeNavigationProp, useNavigation} from '@react-navigation/native';
-import {RootStackParamList} from '../RootStackPrams';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {MainBottomTabParamList} from './MainBottomTabParams';
-import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import { UserContext } from '../../providers/UserProvider';
+import { PodcastContext } from '../../providers/PodcastDetailProvider';
+import {
+  CompositeNavigationProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import { RootStackParamList } from '../RootStackPrams';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { MainBottomTabParamList } from './MainBottomTabParams';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import MiniPlayer from '../../components/MiniPlayer';
 
 type HomeScreenProp = CompositeNavigationProp<
   StackNavigationProp<RootStackParamList, 'Main'>,
@@ -30,8 +36,8 @@ export default function Podcast() {
   const navigation = useNavigation<HomeScreenProp>();
   const [podcastList, setPodcastList] = useState<Array<any>>([]);
   const [isPending, setIsPending] = useState(false);
-  const {accessToken, setAccessToken} = useContext(UserContext);
-  const {setPodcastDetail, following, setPodcastValue} =
+  const { accessToken, setAccessToken } = useContext(UserContext);
+  const { setPodcastDetail, following, setPodcastValue } =
     useContext(PodcastContext);
 
   const getListFollow = async () => {
@@ -55,6 +61,7 @@ export default function Podcast() {
   };
   useEffect(() => {
     getListFollow();
+    console.log(following);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, following]);
 
@@ -66,9 +73,12 @@ export default function Podcast() {
   };
 
   console.log('podcasttest');
-
+  const route = useRoute();
+  useEffect(() => {
+    console.log(route.name);
+  }, [route]);
   return (
-    <View style={tw`pb-1`}>
+    <View style={tw``}>
       <View style={tw`h-2 bg-black`} />
       <ScrollView
         contentContainerStyle={tw.style('pb-26 px-4 bg-black min-h-full pt-2')}>
@@ -102,6 +112,7 @@ export default function Podcast() {
           )}
         </View>
       </ScrollView>
+      <MiniPlayer position={true} />
     </View>
   );
 }

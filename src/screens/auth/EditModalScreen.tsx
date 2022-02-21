@@ -1,13 +1,15 @@
-import {useContext, useEffect, useState} from 'react';
+import { useContext, useEffect, useState } from 'react';
 import React from 'react';
-import {Text, View, TouchableOpacity, Image} from 'react-native';
-import {Input, NativeBaseProvider} from 'native-base';
-import {useNavigation} from '@react-navigation/native';
+import { Text, View, TouchableOpacity, Image } from 'react-native';
+import { Input, NativeBaseProvider } from 'native-base';
+import { useNavigation } from '@react-navigation/native';
 import tw from '../../modules/tailwind';
-import {ArrowLeftIcon, CheckIcon} from 'react-native-heroicons/outline';
-import {UserContext} from '../../providers/UserProvider';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootStackParamList} from '../RootStackPrams';
+import { ArrowLeftIcon, CheckIcon } from 'react-native-heroicons/outline';
+import { UserContext } from '../../providers/UserProvider';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../RootStackPrams';
+import { EpisodeContext } from '../../providers/EpisodeCommentProvider';
+import MiniPlayer from '../../components/MiniPlayer';
 
 type authScreenProp = StackNavigationProp<
   RootStackParamList,
@@ -23,7 +25,8 @@ export default function EditModalScreen() {
   const [usernameValue, setUsernameValue] = useState<string>('');
   // const [userInfo, setUserInfo] = useState<ResposeInfo>({});
   const [validationValue, setValidationValue] = useState<boolean>(false);
-  const {accessToken, userInfo} = useContext(UserContext);
+  const { accessToken, userInfo } = useContext(UserContext);
+  const { setMiniPlayerPosition } = useContext(EpisodeContext);
 
   const getUserInfo = async () => {
     // const temp: any = await AsyncStorage.getItem("userInfo");
@@ -43,6 +46,10 @@ export default function EditModalScreen() {
       console.log(error);
     }
   };
+  useEffect(() => {
+    setMiniPlayerPosition(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     getUserInfo();
@@ -171,6 +178,7 @@ export default function EditModalScreen() {
             />
           </View>
         </View>
+        <MiniPlayer position={false} />
       </View>
     </NativeBaseProvider>
   );
